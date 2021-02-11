@@ -7,7 +7,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {makeStyles} from "@material-ui/core/styles";
 import {Checkbox, Typography} from "@material-ui/core";
-import {AllTaskList, Filter} from "./MainForm";
+import {AllTaskList} from "./MainForm";
+import {PostRequest} from "../../api/requests";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -41,10 +42,29 @@ export default function CreateTaskButton(props) {
 
     const tasksContext = useContext(AllTaskList);
     const {tasks, setTasks} = tasksContext;
-    const saveNewTask = (task) => {
-        setTasks([...tasks, task]);
+
+    const saveNewTask = () => {
+        const newTask = {"issueName": taskName, "isComplited": taskIsComplited, "issueText": taskDescr, "id": id}
+        setTasks([...tasks, newTask]);
     }
     let taskName;
+    let taskDescr = "";
+    let taskIsComplited = false;
+
+    let id;
+    function SaveNewTask(result){
+        id = result.result;
+        saveNewTask();
+    }
+
+    function ButtonClick(){
+        PostRequest(SaveNewTask, "issues/AddIssue?" +
+            "issueName=" + taskName +
+            "&issueText=" + taskDescr +
+            "&isComplited=" + taskIsComplited,
+            true);
+        handleClose();
+    }
 
     return (
         <div className={classes.createButton}>
@@ -60,7 +80,6 @@ export default function CreateTaskButton(props) {
                 <DialogTitle id="form-dialog-title">Создание задачи</DialogTitle>
                 <DialogContent className={classes.form}>
                     <TextField
-                        id="outlined-basic"
                         label="Название"
                         variant="outlined"
                         autoFocus
@@ -71,22 +90,30 @@ export default function CreateTaskButton(props) {
                         }}
                     />
                     <TextField
-                        id="outlined-basic"
                         label="Описание"
                         variant="outlined"
                         className={classes.formElem}
                         fullWidth
+                        onChange={(event) => {
+                            taskDescr = event.target.value;
+                        }}
                     />
                     <div >
                         <Typography display={'inline'}>Выполнено: </Typography>
-                        <Checkbox display={'inline'} color="primary"/>
+                        <Checkbox
+                            display={'inline'}
+                            color="primary"
+                            onChange={(event) => {
+                                taskIsComplited = event.target.checked;
+                            }}
+                        />
                     </div>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary">
                         Отменить
                     </Button>
-                    <Button onClick={() => {saveNewTask(taskName); handleClose();}} color="primary">
+                    <Button onClick={ButtonClick} color="primary">
                         Сохранить
                     </Button>
                 </DialogActions>

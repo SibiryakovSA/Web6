@@ -8,7 +8,9 @@ import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import {Redirect, Route, useHistory} from "react-router-dom";
+import {Redirect} from "react-router-dom";
+import {GetRequest, PostRequest} from "../../api/requests";
+import CryptoJs from "crypto-js"
 
 function Copyright() {
     return (
@@ -31,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
     },
     form: {
-        width: '100%', // Fix IE 11 issue.
+        width: '100%',
         marginTop: theme.spacing(1),
     },
     submit: {
@@ -39,14 +41,37 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+
 export default function SignIn() {
     const classes = useStyles();
     const [registerMode, setRegisterMode] = useState(false);
     const [login, setLogin] = useState(false);
+    let loginFieldValue, passFieldValue;
 
+    function ButtonClick() {
+        if (loginFieldValue === "" || passFieldValue === "")
+            alert("Пожалуйста, заполните все поля");
+        else {
+            const md5Pass = CryptoJs.MD5(passFieldValue);
+            if (!registerMode)
+                GetRequest(TryLogin,
+                    "auth/Login?" +
+                    "username=" + loginFieldValue +
+                    "&pass=" + md5Pass.toString(),
+                    true);
+            else
+                PostRequest(TryLogin,
+                    "auth/Registr?" +
+                    "username=" + loginFieldValue +
+                    "&pass=" + md5Pass,
+                    true);
+        }
+    }
 
-    function ButtonClick(state){
-        setLogin(state);
+    function TryLogin(result){
+        if (result.status === 200)
+            setLogin(true);
+        else alert("Неверная комбинация логина и пароля");
     }
 
     return (
@@ -67,6 +92,9 @@ export default function SignIn() {
                         name="email"
                         autoComplete="email"
                         autoFocus
+                        onChange={(event) =>{
+                            loginFieldValue = event.target.value;
+                        }}
                     />
                     <TextField
                         variant="outlined"
@@ -78,13 +106,16 @@ export default function SignIn() {
                         type="password"
                         id="password"
                         autoComplete="current-password"
+                        onChange={(event) =>{
+                            passFieldValue = event.target.value;
+                        }}
                     />
                     <Button
                         fullWidth
                         variant="contained"
                         color="primary"
                         className={classes.submit}
-                        onClick={() => ButtonClick(true)}
+                        onClick={() => ButtonClick()}
                     >
                         {registerMode ? "Зарегистрироваться" : "Войти"}
                         {login ? <Redirect to='/tasks'/>:""}

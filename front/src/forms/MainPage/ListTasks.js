@@ -1,10 +1,8 @@
 import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
 import Task from "./Task";
-import {AllTaskList, Filter} from "./MainForm";
-import {Button} from "@material-ui/core";
+import {AllTaskList, Filter, FilterChecked} from "./MainForm";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -16,48 +14,50 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TaskList() {
+export default function TaskList(props) {
     const classes = useStyles();
-    const [completedTasks, setCompletedTasks] = React.useState([]);
-    //const [tasks, setTasks] = React.useState([]);
 
-    //const {value, setValue} = useContext(AllTaskList);
     const tasksContext = useContext(AllTaskList);
-    const {tasks, setTasks} = tasksContext;
+    const tasks = tasksContext.tasks;
 
     const filterContext = useContext(Filter);
-    const {filter, setFilter} = filterContext;
-    //const  = React.useState(taskList);
-    /*return (
-        <div className={classes.root}>
-            <List component="nav">
-                {tasks.map( (elem, index) => {
-                    return (
-                        <Task name={elem} key={index}/>
-                    )
-                })}
-            </List>
-            {completedTasks.length > 0 ? <Divider /> : ""}
-            <List component="nav">
-                {completedTasks.map( (elem, index) => {
-                    return (
-                        <Task name={elem} key={index}/>
-                    )
-                })}
-            </List>
-        </div>
-    );*/
+    const filter = filterContext.filter;
+
+    const checkedContext = useContext(FilterChecked);
+    const checked = checkedContext.checked;
 
     return (
         <div className={classes.root}>
             <List component="nav">
                 {tasks.map((elem, index) => {
-                    const value = elem.toString().toLowerCase();
+                    const value = elem.issueName.toString().toLowerCase();
                     const searchValue = filter.toLowerCase();
-                    if (value.indexOf(searchValue) !== -1)
+                    let checkedControl = false;
+
+                    switch (checked) {
+                        case 0:
+                            checkedControl = true;
+                            break;
+                        case 1:
+                            checkedControl = elem.isComplited;
+                            break;
+                        case 2:
+                            checkedControl = !elem.isComplited;
+                            break;
+                    }
+
+                    if (value.indexOf(searchValue) !== -1 && checkedControl)
                         return (
-                            <Task name={elem} key={index}/>
+                            <Task
+                                name={elem.issueName}
+                                description={elem.issueText}
+                                isComplited={elem.isComplited}
+                                key={index}
+                                id={elem.id}
+                                username={props.username}
+                            />
                         )
+                    return "";
                 })}
             </List>
         </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {makeStyles, withStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -9,12 +9,14 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import {TextField} from "@material-ui/core";
+import {GetRequest, PostRequest} from "../../api/requests";
 
 
 //стили, добавленные мной (не с шаблона)
 const useStyles = makeStyles((theme) => ({
     openDialogButton: {
-        marginLeft: theme.spacing(4) - 5
+        marginLeft: theme.spacing(4) - 5,
+        marginBottom: 10
     },
     commentTextField: {
         margin: theme.spacing(1)
@@ -64,8 +66,8 @@ const DialogActions = withStyles((theme) => ({
     },
 }))(MuiDialogActions);
 
-export default function CommentsButton() {
-    const userName = 'testLogin';//TODO: сделай через пропсы или через контекст
+export default function CommentsButton(props) {
+    const userName = props.username;
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
 
@@ -76,14 +78,31 @@ export default function CommentsButton() {
         setOpen(false);
     };
 
-    const [comments, setComments] = React.useState([]);
+    let textFieldValue;
 
     const AddComment = event => {
-        event.preventDefault();
+        //event.preventDefault();
+        PostRequest(() => {}, "comments/AddIssueComment?" +
+            "issueId=" + props.id +
+            "&commentText=" + textFieldValue,
+            true);
         setComments([...comments, textFieldValue]);
     };
 
-    let textFieldValue;
+    useEffect(() => {
+        let tempComments = [];
+        const GetIssueComments = (result) => {
+            if (result.status === 200){
+                let requestResult = JSON.parse(result.result);
+                requestResult.forEach((comment) => {
+                    tempComments.push(comment.commentText);
+                })
+                setComments(tempComments);
+            }
+        }
+        GetRequest(GetIssueComments, "comments/GetIssueComments?issueId=" + props.id, true);
+    }, []);
+    const [comments, setComments] = React.useState([]);
 
     return (
         <div className={classes.openDialogButton}>

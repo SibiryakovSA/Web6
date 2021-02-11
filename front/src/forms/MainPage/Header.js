@@ -8,7 +8,9 @@ import SearchIcon from '@material-ui/icons/Search';
 import Button from "@material-ui/core/Button";
 import CreateTaskButton from "./CreateTaskButton";
 import {Redirect} from "react-router-dom";
-import {AllTaskList, Filter} from "./MainForm";
+import {Filter, FilterChecked} from "./MainForm";
+import {GetRequest} from "../../api/requests";
+import {CheckBox} from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -63,18 +65,37 @@ const useStyles = makeStyles((theme) => ({
     exitButton: {
         marginLeft: theme.spacing(2),
         color: "inherit"
+    },
+    filterCheckbox: {
+        marginLeft: theme.spacing(1),
     }
 }));
 
 export default function SearchAppBar(props) {
     const classes = useStyles();
-    const login = "TestLogin"; //TODO: измени на пропсы
+    const login = props.login;
     const [exit, setExit] = React.useState(false);
 
     const filterContext = useContext(Filter);
-    const {filter, setFilter} = filterContext;
+    const setFilter = filterContext.setFilter;
     const ChangeFilterRow = (value) => {
         setFilter(value);
+    }
+
+    const checkedContext = useContext(FilterChecked);
+    const {checked, setChecked} = checkedContext;
+
+    const ExitButtonClick = (result) => {
+        if (result.status === 200)
+            setExit(true);
+    }
+
+    const SendExitRequest = () => {
+        GetRequest(ExitButtonClick, "auth/Logout", true);
+    }
+
+    function CheckboxClick(){
+        setChecked(checked === 2 ? 0 : checked + 1);
     }
 
     return (
@@ -99,7 +120,13 @@ export default function SearchAppBar(props) {
                             onChange={(event => ChangeFilterRow(event.target.value))}
                         />
                     </div>
-                    <Button className={classes.exitButton} onClick={() => setExit(true)}>
+                    <CheckBox
+                        className={classes.filterCheckbox}
+                        onClick={CheckboxClick}
+                        color={checked === 0 ? "disabled" : checked === 1 ? "inherit" : "action"}
+                        checked={true}
+                    />
+                    <Button className={classes.exitButton} onClick={SendExitRequest}>
                         Выйти
                         {exit ? <Redirect to='/login'/> : ""}
                     </Button>
