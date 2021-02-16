@@ -9,7 +9,7 @@ import CommentsButton from "./Comments";
 import DeleteOutlinedIcon from '@material-ui/icons/DeleteOutlined';
 import EditIcon from '@material-ui/icons/Edit';
 import {AllTaskList} from "./MainForm";
-import {PostRequest} from "../../api/requests";
+import {DeleteRequest, PatchRequest, PostRequest} from "../../api/requests";
 
 const useStyles = makeStyles((theme) => ({
     nested: {
@@ -37,11 +37,16 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+function patchTaskHandler(response){
+    if (response.status >= 300)
+        alert('Произошла ошибка в изменении задачи');
+}
+
 function CollapsedList(props){
     const [checked, setChecked] = React.useState(props.isComplited);
 
     function CheckboxValueChanged(event){
-        PostRequest(() => {}, "issues/EditIssue?" +
+        PatchRequest(patchTaskHandler, "issues/EditIssue?" +
             "issueId=" + props.id +
             "&isComplited=" + !checked,
             true);
@@ -72,6 +77,7 @@ function CollapsedListEditMode(props){
     const {tasks, setTasks} = props.tasks;
     let nameValue = props.name;
     let descrValue = props.description;
+
     function SaveButtonClick(){
         let temp = [];
         tasks.forEach((elem) => {
@@ -84,7 +90,7 @@ function CollapsedListEditMode(props){
         })
         setTasks(temp);
         props.editMode(false);
-        PostRequest(() => {}, "issues/EditIssue?" +
+        PatchRequest(patchTaskHandler, "issues/EditIssue?" +
             "issueId=" + props.id +
             "&issueName=" + nameValue +
             "&issueText=" + descrValue,
@@ -124,6 +130,11 @@ export default function Task(props) {
 
     const tasksContext = useContext(AllTaskList);
     const {tasks, setTasks} = tasksContext;
+
+    function deleteTaskHandler(response){
+        if (response.status >= 400)
+            alert('Произошла ошибка с удалением задачи');
+    }
     function deleteThisTask(event){
         let temp = [];
         tasks.forEach((elem) => {
@@ -131,7 +142,7 @@ export default function Task(props) {
                 temp.push(elem);
         })
         setTasks(temp);
-        PostRequest(() => {}, "issues/DeleteIssue?" +
+        DeleteRequest(deleteTaskHandler, "issues/DeleteIssue?" +
             "id=" + props.id,
             true);
     }

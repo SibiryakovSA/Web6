@@ -57,24 +57,21 @@ namespace Api.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
 
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> Login(string userName, string pass)
         {
             var user = await _db.users.FirstOrDefaultAsync(u => u.login == userName && u.pass == pass);
             if (user != null)
             {
-                await Authenticate(userName, user.role); // аутентификация
-                //Response.Headers.Add("Access-Control-Allow-Origin", "localhost:3000");
-                //Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+                await Authenticate(userName, user.role);
                 return Ok();
-                //return RedirectToAction("Index", "issues");
             }
 
             return NotFound();
         }
 
         [Authorize]
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

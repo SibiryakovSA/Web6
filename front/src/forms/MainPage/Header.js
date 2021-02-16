@@ -9,7 +9,7 @@ import Button from "@material-ui/core/Button";
 import CreateTaskButton from "./CreateTaskButton";
 import {Redirect} from "react-router-dom";
 import {Filter, FilterChecked} from "./MainForm";
-import {GetRequest} from "../../api/requests";
+import {PostRequest} from "../../api/requests";
 import {CheckBox} from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
@@ -91,7 +91,7 @@ export default function SearchAppBar(props) {
     }
 
     const SendExitRequest = () => {
-        GetRequest(ExitButtonClick, "auth/Logout", true);
+        PostRequest(ExitButtonClick, "auth/Logout", true);
     }
 
     function CheckboxClick(){

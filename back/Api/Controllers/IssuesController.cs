@@ -19,26 +19,36 @@ namespace Api.Controllers
         [HttpGet]
         public IActionResult GetIssues()
         {
-            if (User.Claims.ToList()[1].Value == "2")
-                return GetAllIssues();
-            return GetUserIssues();
+            return User.Claims.ToList()[1].Value == "2" ? 
+                GetAllIssues() : GetUserIssues();
         }
 
         [Authorize(Roles = "2")]
         [HttpGet]
         public IActionResult GetAllIssues()
         {
-            return Ok(_db.issues);
+            if (User.Claims.ToList()[1].Value == "2")
+                return Ok(_db.issues);
+            if (User.Claims.ToList()[0].Value == null)
+                //ошибка 401
+                return Unauthorized();
+            //ошибка 403
+            return Forbid();
         }
 
         [HttpGet]
         public IActionResult GetUserIssues()
         {
             var user = _db.users.FirstOrDefault(x => x.login == User.Claims.ToList()[0].Value);
+            if (user == null)
+                //ошибка 401
+                return Unauthorized();
+            
             return Ok(_db.issues.Where(x => x.userId == user.id));
         }
 
-        [HttpPost]
+        [Authorize]
+        [HttpDelete]
         public IActionResult DeleteIssue(int id)
         {
             var user = _db.users.FirstOrDefault(x => x.login == User.Claims.ToList()[0].Value);
@@ -66,6 +76,10 @@ namespace Api.Controllers
         public IActionResult AddIssue(string issueName, string issueText = "", bool isComplited = false)
         {
             var user = _db.users.FirstOrDefault(x => x.login == User.Claims.ToList()[0].Value);
+            if (user == null)
+                //ошибка 403
+                return Forbid();
+            
             var issue = new Issue() { isComplited = isComplited, issueText = issueText, issueName = issueName, userId = user.id };
 
             var result = _db.issues.Add(issue);
@@ -74,7 +88,7 @@ namespace Api.Controllers
             return Ok(result.Entity.id);
         }
 
-        [HttpPost]
+        [HttpPatch]
         public IActionResult EditIssue(int issueId, string issueName = null, string issueText = null,
             bool? isComplited = null)
         {
@@ -86,10 +100,10 @@ namespace Api.Controllers
                 return NotFound();
 
             if (userClaims[1].Value != "2" && issue.userId != user.id)
-                return NotFound();
+                return Forbid();
 
             if (issueName == null && issueText == null && isComplited == null)
-                return NotFound();
+                return BadRequest();
             
             if (issueName != null) 
                 issue.issueName = issueName;

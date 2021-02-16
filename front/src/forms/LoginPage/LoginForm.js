@@ -54,13 +54,13 @@ export default function SignIn() {
         else {
             const md5Pass = CryptoJs.MD5(passFieldValue);
             if (!registerMode)
-                GetRequest(TryLogin,
+                PostRequest(TryLogin,
                     "auth/Login?" +
                     "username=" + loginFieldValue +
                     "&pass=" + md5Pass.toString(),
                     true);
             else
-                PostRequest(TryLogin,
+                PostRequest(TryRegistr,
                     "auth/Registr?" +
                     "username=" + loginFieldValue +
                     "&pass=" + md5Pass,
@@ -68,10 +68,16 @@ export default function SignIn() {
         }
     }
 
-    function TryLogin(result){
-        if (result.status === 200)
+    function TryLogin(request){
+        if (request.status === 200)
             setLogin(true);
         else alert("Неверная комбинация логина и пароля");
+    }
+
+    function TryRegistr(request){
+        if (request.status === 200)
+            setLogin(true);
+        else alert("Ошибка при регистрации");
     }
 
     return (
